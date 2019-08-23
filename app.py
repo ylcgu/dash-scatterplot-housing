@@ -2,58 +2,48 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objs as go
+import pandas as pd
 
 ########### Define your variables ######
 
-myheading = "Baseball Stats from the 1950s"
-mytitle = "Batting Averages for 3 Hall of Famers"
-x_values = ['1954', '1955', '1956', '1957', '1958', '1959']
-y1_values = [345, 356, 345, 388, 328, 254]
-y2_values = [300, 306, 353, 365, 304, 285]
-y3_values = [280, 314, 328, 322, 326, 355]
-color1 = '#fc9403'
-color2 = '#0307fc'
-color3 = '#9003fc'
-name1 = 'Ted Williams'
-name2 = 'Mickey Mantle'
-name3 = 'Hank Aaron'
-tabtitle = 'baseball'
-sourceurl = 'https://www.baseball-reference.com'
-githublink = 'https://github.com/austinlasseter/dash-linechart-example'
+tabtitle = 'DC Housing'
+myheading='Analysis of housing prices in Washington DC'
+neighborhood='Columbia Heights'
+color1='#04F9E6'
+color2='#1B03B1'
+sourceurl = 'https://www.kaggle.com/christophercorrea/dc-residential-properties/'
+githublink = 'https://github.com/austinlasseter/dash-scatterplot-housing'
+
+########### Prepare the dataframe
+df = pd.read_csv('DC_Properties.csv')
+df=df[df['ASSESSMENT_NBHD']==neighborhood]
+df=df[(df['PRICE']<=1000000) & (df['PRICE']>=10000)]
+df=df[df['LANDAREA']<4000]
+df=df[df['PRICE']<900000]
+df=df[df['BEDRM']<8]
 
 ########### Set up the chart
-
-# create traces
-trace0 = go.Scatter(
-    x = x_values,
-    y = y1_values,
-    mode = 'lines',
-    marker = {'color': color1},
-    name = name1
-)
-trace1 = go.Scatter(
-    x = x_values,
-    y = y2_values,
-    mode = 'lines',
-    marker = {'color': color2},
-    name = name2
-)
-trace2 = go.Scatter(
-    x = x_values,
-    y = y3_values,
-    mode = 'lines',
-    marker = {'color': color3},
-    name = name3
+trace = go.Scatter(
+    x = df['PRICE'],
+    y = df['LIVING_GBA'],
+    mode = 'markers',
+    marker=dict(
+        size=8,
+        color = df['BEDRM'], # set color equal to a third variable
+        colorscale=[color1, color2],
+        colorbar=dict(title='Bedrooms'),
+        showscale=True
+    )
 )
 
-# assign traces to data
-data = [trace0, trace1, trace2]
+data = [trace]
 layout = go.Layout(
-    title = mytitle
+    title = f'Larger homes cost more in {neighborhood}!', # Graph title
+    xaxis = dict(title = 'Sales Price'), # x-axis label
+    yaxis = dict(title = 'Square Feet'), # y-axis label
+    hovermode ='closest' # handles multiple points landing on the same vertical
 )
-
-# Generate the figure dictionary
-fig = go.Figure(data=data,layout=layout)
+fig = go.Figure(data=data, layout=layout)
 
 ########### Initiate the app
 app = dash.Dash()
